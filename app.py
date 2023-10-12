@@ -1,7 +1,7 @@
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from pymongo import MongoClient
 
 dotenv_path = join(dirname(__file__), '.env')
@@ -19,6 +19,28 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route("/profil", methods=["POST"])
+def profil_post():
+    name_receive = request.form['name_give']
+    email_receive = request.form['email_give']
+    message_receive = request.form['message_give']
+    count = db.profil.count_documents({})
+    num = count + 1
+    doc = {
+        'num': num,
+        'name': name_receive,
+        'email': email_receive,
+        'message': message_receive,
+        'done': 0
+    }
+    db.profil.insert_one(doc)
+    return jsonify({'msg': 'data saved!'})
+
+@app.route("/profil", methods=["GET"])
+def profil_get():
+    profils_list = list(db.profil.find({}, {'_id': False}))
+    return jsonify({'profils': profils_list})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True) 
